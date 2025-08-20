@@ -10,43 +10,22 @@ class CharactersBloc extends BaseBloc {
   CharactersBloc({required CharactersRepository repository})
     : _repository = repository {
     _mapper = CharactersMapper();
-    _fetchCharacters();
   }
   late final CharactersMapper _mapper;
   final Logger _logger = Logger('CharactersBloc');
   final CharactersRepository _repository;
 
-  final _charactersReadyStreamController = StreamController<bool>.broadcast();
-
-  List<CharacterModel>? _characters;
-  bool _charactersReady = false;
-
-  List<CharacterModel>? get characters => _characters;
-  bool get charactersReady => _charactersReady;
-  Stream<bool> get charactersReadyStream =>
-      _charactersReadyStreamController.stream;
-
-  @override
-  void dispose() {
-    _charactersReadyStreamController.close();
-  }
-
-  void _emitCharactersReady() {
-    _charactersReadyStreamController.add(_charactersReady);
-  }
-
-  Future<void> _fetchCharacters() async {
+  Future<List<CharacterModel>> fetchCharacters() async {
     try {
-      _charactersReady = true;
       final response = await _repository.fetchCharacters();
-      _characters = _mapper.convertList<CharacterDto, CharacterModel>(response);
-      _emitCharactersReady();
+      return _mapper.convertList<CharacterDto, CharacterModel>(response);
     } catch (error, stackTrace) {
       _logger.severe(
         'Error on CharactersBloc._fetchCharacters',
         error,
         stackTrace,
       );
+      rethrow;
     }
   }
 }
